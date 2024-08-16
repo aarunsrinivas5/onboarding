@@ -25,6 +25,11 @@ while not done:
     states.append(state)
 states = np.vstack(states)
 
+# plot orbit
+
+path = 'exercise_1/figures'
+os.makedirs(path, exist_ok=True)
+
 coordinate_names = [
     'X Coordinate',
     'Y Coordinate',
@@ -34,11 +39,6 @@ coordinate_names = [
     'Velocity-Z Coordinate'
 ]
 time = np.arange(len(states)) * dt
-
-# plot orbit
-
-path = 'exercise_1/figures'
-os.makedirs(path, exist_ok=True)
 
 for idx, coordinate_name in enumerate(coordinate_names):
     coordinate = states[:, idx]
