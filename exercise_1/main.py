@@ -1,7 +1,10 @@
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 
 from env import TwoBodyEnv
+
+# generate orbit
 
 G = 6.67430e-11
 M = 5.972e24
@@ -22,6 +25,33 @@ while not done:
     states.append(state)
 states = np.vstack(states)
 
+coordinate_names = [
+    'X Coordinate',
+    'Y Coordinate',
+    'Z Coordinate',
+    'Velocity-X Coordinate',
+    'Velocity-Y Coordinate',
+    'Velocity-Z Coordinate'
+]
+time = np.arange(len(states)) * dt
+
+# plot orbit
+
+path = 'exercise_1/figures'
+os.makedirs(path, exist_ok=True)
+
+for idx, coordinate_name in enumerate(coordinate_names):
+    coordinate = states[:, idx]
+    plt.plot(time, coordinate)
+
+    plt.xlabel('Time (s)')
+    plt.ylabel(coordinate_name)
+    plt.title(f'{coordinate_name} Over Time')
+
+    filename = coordinate_name.lower().replace('-', '_').split()[0]
+    plt.savefig(os.path.join(path, f'{filename}_2d_plot.png'))
+    plt.clf()
+
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 
@@ -37,4 +67,5 @@ ax.legend()
 ax.set_box_aspect([1,1,1])
 ax.grid(True)
 
+plt.savefig(os.path.join(path, '3d_plot.png'))
 plt.show()
