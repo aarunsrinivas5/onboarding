@@ -27,7 +27,7 @@ states = np.vstack(states)
 
 # plot orbit
 
-path = 'exercise_1/figures'
+path = './figures'
 os.makedirs(path, exist_ok=True)
 
 coordinate_names = [

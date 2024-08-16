@@ -88,7 +88,7 @@ class TwoBodyProblemDiscreteEnv(gym.Env):
         if v > self.v_max:
             return self.obs_norm, -1000 / self.step_count, True, False, {'pos': self.obs}
         
-        orbital_penalty = - abs(v - self.v_orbit) / self.v_orbit
+        orbital_penalty = - abs(v - self.target_v_orbital) / self.target_v_orbital
         altitude_penalty = - abs(r - self.target_altitude) / self.target_altitude
         reward = 0.1 * orbital_penalty + altitude_penalty
 
