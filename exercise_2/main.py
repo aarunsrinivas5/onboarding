@@ -1,13 +1,13 @@
 import os
 import numpy as np
+from tqdm import tqdm
+import matplotlib.pyplot as plt
 import torch
 from torch import nn, optim
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
-from tqdm import tqdm
-import matplotlib.pyplot as plt
 
-from env import TwoBodyEnv
+from env import TwoBodyEnv, ApproxTwoBodyEnv
 from model import DNN
 
 G = 6.67430e-11
@@ -19,7 +19,7 @@ v_orbital = np.sqrt(G * M / r)
 initial_obs = np.array([r, 0, 0, 0, v_orbital, 0])
 dt = 10
 
-env = TwoBodyEnv(G, M, m, initial_obs, dt)
+env = TwoBodyEnv(initial_obs, G=G, M=M, m=m, dt=dt)
 
 outputs = [initial_obs]
 
@@ -37,7 +37,8 @@ t = (np.arange(len(outputs)) * dt).reshape(-1, 1)
 scaler = MinMaxScaler()
 outputs = scaler.fit_transform(outputs)
 inputs = scaler.transform(inputs)
-t = t / max(t)
+t_max = max(t).item()
+t = t / t_max
 inputs = np.concatenate((inputs, t), axis=1)
 
 x_train, x_test, y_train, y_test = train_test_split(inputs, outputs, shuffle=True)
@@ -78,6 +79,73 @@ with torch.no_grad():
 
 print(f"mae: {loss}")
 
+approx_env = ApproxTwoBodyEnv(initial_obs, dt, model, scaler, t_max)
+states = []
+done = False
+state = approx_env.reset()
+while not done:
+    state, done = approx_env.step()
+    states.append(state)
+states = np.vstack(states)
+
+path = './figures'
+os.makedirs(path, exist_ok=True)
+
+plt.plot(train_losses)
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.title('Training Loss')
+plt.savefig(os.path.join(path, 'train_loss.png'))
+plt.clf()
+
+plt.plot(val_losses, color='orange')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.title('Validation Loss')
+plt.savefig(os.path.join(path, 'val_loss.png'))
+plt.clf()
+
+coordinate_names = [
+    'X Coordinate',
+    'Y Coordinate',
+    'Z Coordinate',
+    'Velocity-X Coordinate',
+    'Velocity-Y Coordinate',
+    'Velocity-Z Coordinate'
+]
+time = np.arange(len(states)) * dt
+
+for idx, coordinate_name in enumerate(coordinate_names):
+    coordinate = states[:, idx]
+    plt.plot(time, coordinate)
+
+    plt.xlabel('Time (s)')
+    plt.ylabel(coordinate_name)
+    plt.title(f'{coordinate_name} Over Time')
+
+    filename = coordinate_name.lower().replace('-', '_').split()[0]
+    plt.savefig(os.path.join(path, f'{filename}_2d_plot.png'))
+    plt.clf()
+
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+
+ax.plot([0], [0], [0], 'ro', markersize=10, label='Fixed Body')
+ax.plot(states[:, 0], states[:, 1], states[:, 2], 'b-', label='Orbiting Body')
+
+ax.set_zlim(-10, 10)
+
+ax.set_xlabel('X position (m)')
+ax.set_ylabel('Y position (m)')
+ax.set_zlabel('Z position (m)')
+ax.set_title('Two-Body Problem in 3D')
+
+ax.legend()
+ax.set_box_aspect([1,1,1])
+ax.grid(True)
+
+plt.savefig(os.path.join(path, '3d_plot.png'))
+plt.clf()
 
 
 

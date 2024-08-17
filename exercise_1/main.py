@@ -27,7 +27,7 @@ states = np.vstack(states)
 
 # plot orbit
 
-path = 'exercise_1/figures'
+path = './figures'
 os.makedirs(path, exist_ok=True)
 
 coordinate_names = [
@@ -68,4 +68,4 @@ ax.set_box_aspect([1,1,1])
 ax.grid(True)
 
 plt.savefig(os.path.join(path, '3d_plot.png'))
-plt.show()
+plt.clf()
